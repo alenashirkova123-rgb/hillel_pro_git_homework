@@ -1,0 +1,116 @@
+// 1) 'number' + 3 + 3
+var ex1 = 'number' + 3 + 3;
+// 'number' + 3 → 'number3'
+// 'number3' + 3 → 'number33'
+console.log(ex1); // "number33"
+
+// 2) null + 3
+var ex2 = null + 3;
+// null → 0
+// 0 + 3 = 3
+console.log(ex2); // 3
+
+// 3) 5 && "qwerty"
+var ex3 = 5 && "qwerty";
+// 5 — truthy → повертає другий операнд
+console.log(ex3); // "qwerty"
+
+// 4) +'40' + +'2' + "hillel"
+var ex4 = +'40' + +'2' + "hillel";
+// +'40' → 40
+// +'2' → 2
+// 40 + 2 = 42
+// 42 + "hillel" → "42hillel"
+console.log(ex4); // "42hillel"
+
+// 5) '10' - 5 === 6
+var ex5 = '10' - 5 === 6;
+// '10' → 10; 10 - 5 = 5
+// 5 === 6 → false
+console.log(ex5); // false
+
+// 6) true + false
+var ex6 = true + false;
+// true → 1; false → 0
+// 1 + 0 = 1
+console.log(ex6); // 1
+
+// 7) '4px' - 3
+var ex7 = '4px' - 3;
+// '4px' → NaN
+// NaN - 3 → NaN
+console.log(ex7); // NaN
+
+// 8) '4' - 3
+var ex8 = '4' - 3;
+// '4' → 4
+// 4 - 3 = 1
+console.log(ex8); // 1
+
+// 9) '6' + 3 ** 0
+var ex9 = '6' + 3 * 0;
+// 3 ** 0 = 1
+// '6' + 1 → "61"
+console.log(ex9); // "61"
+
+// 10) 12 / '6'
+var ex10 = 12 / '6';
+// '6' → 6
+// 12 / 6 = 2
+console.log(ex10); // 2
+
+// 11) '10' + (5 === 6)
+var ex11 = '10' + (5 === 6);
+// 5 === 6 → false
+// '10' + false → "10false"
+console.log(ex11); // "10false"
+
+// 12) null == ''
+var ex12 = null == '';
+// null == '' → false (null == only undefined or null)
+console.log(ex12); // false
+
+// 13) 3 ** (9 / 3)
+var ex13 = 3 * (9 / 3);
+// 9/3 = 3 → 3 ** 3 = 27
+console.log(ex13); // 27
+
+// 14) !!'false' == !!'true'
+var ex14 = !!'false' == !!'true';
+// 'false' truthy → !! → true
+// 'true' truthy → !! → true
+// true == true → true
+console.log(ex14); // true
+
+// 15) 0 || '0' && 1
+var ex15 = 0 || '0' && 1;
+// '0' && 1 → 1
+// 0 || 1 → 1
+console.log(ex15); // 1
+
+// 16) (+null == false) < 1
+var ex16 = (+null == false) < 1;
+// +null → 0
+// 0 == false → true
+// true < 1 → 1 < 1 → false
+console.log(ex16); // false
+
+// 17) false && true || true
+var ex17 = false && true || true;
+// false && true → false
+// false || true → true
+console.log(ex17); // true
+
+// 18) false && (false || true)
+var ex18 = false && (false || true);
+// (false || true) → true
+// false && true → false
+console.log(ex18); // false
+
+// 19) (+null == false) < 1 ** 5
+var ex19 = (+null == false) < 1 ** 5;
+// +null → 0
+// 0 == false → true
+// 1**5 = 1
+// true < 1 → 1 < 1 → false
+console.log(ex19); // false
