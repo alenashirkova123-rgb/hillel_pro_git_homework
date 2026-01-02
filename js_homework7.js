@@ -37,3 +37,11 @@ for (var i = 0; i < arr.length; i++) {
 }
 
 console.log(trustedEmails);
+
+// ====== TASK 2 ======
+// 6+ symbols without letter A/a
+
+var text = "Wonderful Joyful Happiness Time Task Apple";
+var reNoA = /\b[^aA\s]{6,}\b/g;
+
+console.log("Words without A/a:", text.match(reNoA));
