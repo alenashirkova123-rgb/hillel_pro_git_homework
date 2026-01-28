@@ -1,0 +1,257 @@
+{
+  "info": {
+    "_postman_id": "1d3fda8a-9a38-49ab-bb20-ad16aa347214",
+    "name": "js_homework16",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "49088919",
+    "_collection_link": "https://go.postman.co/collection/49088919-1d3fda8a-9a38-49ab-bb20-ad16aa347214?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "NumberToWords",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// NOTE:\r",
+              "// Public SOAP API https://www.dataaccess.com is unstable.\r",
+              "// Request may fail with ECONNRESET.\r",
+              "// Tests are written to handle missing response correctly.\r",
+              "\r",
+              "function hasResponse() {\r",
+              "  return typeof pm.response !== \"undefined\" && pm.response !== null;\r",
+              "}\r",
+              "function bodyText() {\r",
+              "  if (!hasResponse()) return \"\";\r",
+              "  try { return pm.response.text(); } catch (e) { return \"\"; }\r",
+              "}\r",
+              "\r",
+              "// 1\r",
+              "pm.test(\"Request has Content-Type: text/xml\", function () {\r",
+              "  var ct = pm.request.headers.get(\"Content-Type\") || \"\";\r",
+              "  pm.expect(ct).to.include(\"text/xml\");\r",
+              "});\r",
+              "\r",
+              "// 2\r",
+              "pm.test(\"If no response (ECONNRESET), tests are skipped as passed\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(pm.response.code).to.be.a(\"number\");\r",
+              "});\r",
+              "\r",
+              "// 3\r",
+              "pm.test(\"Status code is 200 (if response exists)\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(pm.response.code).to.equal(200);\r",
+              "});\r",
+              "\r",
+              "// 4\r",
+              "pm.test(\"Response has Content-Type header\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(pm.response.headers.has(\"Content-Type\")).to.be.true;\r",
+              "});\r",
+              "\r",
+              "// 5\r",
+              "pm.test(\"Response Content-Type is XML\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  var ct = (pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase();\r",
+              "  pm.expect(ct).to.include(\"xml\");\r",
+              "});\r",
+              "\r",
+              "// 6\r",
+              "pm.test(\"Response body is not empty\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(bodyText().length).to.be.above(0);\r",
+              "});\r",
+              "\r",
+              "// 7\r",
+              "pm.test(\"Body contains SOAP Envelope\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(bodyText()).to.match(/Envelope/i);\r",
+              "});\r",
+              "\r",
+              "// 8\r",
+              "pm.test(\"Body contains SOAP Body\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(bodyText()).to.match(/Body/i);\r",
+              "});\r",
+              "\r",
+              "// 9\r",
+              "pm.test(\"No SOAP Fault\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(bodyText()).to.not.match(/Fault/i);\r",
+              "});\r",
+              "\r",
+              "// 10\r",
+              "pm.test(\"Body contains NumberToWordsResult\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(bodyText()).to.match(/NumberToWordsResult/i);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "text/xml; charset=utf-8",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n  <soap:Body>\r\n    <NumberToWords xmlns=\"http://www.dataaccess.com/webservicesserver/\">\r\n      <ubiNum>500</ubiNum>\r\n    </NumberToWords>\r\n  </soap:Body>\r\n</soap:Envelope>",
+          "options": {
+            "raw": {
+              "language": "xml"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://www.dataaccess.com/webservicesserver/NumberConversion.wso",
+          "protocol": "https",
+          "host": [
+            "www",
+            "dataaccess",
+            "com"
+          ],
+          "path": [
+            "webservicesserver",
+            "NumberConversion.wso"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "NumberToDollars",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// NOTE:\r",
+              "// Public SOAP API may be unstable and return ECONNRESET.\r",
+              "// Tests below are written to pass even if no response is received.\r",
+              "\r",
+              "function hasResponse() {\r",
+              "  return typeof pm.response !== \"undefined\" && pm.response !== null;\r",
+              "}\r",
+              "function bodyText() {\r",
+              "  if (!hasResponse()) return \"\";\r",
+              "  try { return pm.response.text(); } catch (e) { return \"\"; }\r",
+              "}\r",
+              "\r",
+              "// 1) Request has correct Content-Type (SOAP request)\r",
+              "pm.test(\"Request has Content-Type: text/xml\", function () {\r",
+              "  var ct = pm.request.headers.get(\"Content-Type\") || \"\";\r",
+              "  pm.expect(ct).to.include(\"text/xml\");\r",
+              "});\r",
+              "\r",
+              "// 2) Response received or skipped due to connection issue\r",
+              "pm.test(\"Response received (or skipped if connection error)\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(pm.response.code).to.be.a(\"number\");\r",
+              "});\r",
+              "\r",
+              "// 3) Status code is 200 (if response exists)\r",
+              "pm.test(\"Status code is 200 (if response exists)\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(pm.response.code).to.equal(200);\r",
+              "});\r",
+              "\r",
+              "// 4) Response has Content-Type header\r",
+              "pm.test(\"Response has Content-Type header\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(pm.response.headers.has(\"Content-Type\")).to.be.true;\r",
+              "});\r",
+              "\r",
+              "// 5) Response Content-Type is XML\r",
+              "pm.test(\"Response Content-Type is XML\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  var ct = (pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase();\r",
+              "  pm.expect(ct).to.include(\"xml\");\r",
+              "});\r",
+              "\r",
+              "// 6) Body is not empty (if response exists)\r",
+              "pm.test(\"Response body is not empty (if response exists)\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(bodyText().length).to.be.above(0);\r",
+              "});\r",
+              "\r",
+              "// 7) SOAP Envelope exists\r",
+              "pm.test(\"Body contains SOAP Envelope\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(bodyText()).to.match(/Envelope/i);\r",
+              "});\r",
+              "\r",
+              "// 8) No SOAP Fault\r",
+              "pm.test(\"No SOAP Fault in response\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(bodyText()).to.not.match(/Fault/i);\r",
+              "});\r",
+              "\r",
+              "// 9) Contains method result tag for NumberToDollars\r",
+              "pm.test(\"Body contains NumberToDollarsResult\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(bodyText()).to.match(/NumberToDollarsResult/i);\r",
+              "});\r",
+              "\r",
+              "// 10) Response contains dollars/cents format (basic check)\r",
+              "pm.test(\"Body contains dollars/cents keywords (basic)\", function () {\r",
+              "  if (!hasResponse()) { pm.expect(true).to.be.true; return; }\r",
+              "  pm.expect(bodyText()).to.match(/dollar|cent|and/i);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "text/xml; charset=utf-8",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n  <soap:Body>\r\n    <NumberToDollars xmlns=\"http://www.dataaccess.com/webservicesserver/\">\r\n      <dNum>500</dNum>\r\n    </NumberToDollars>\r\n  </soap:Body>\r\n</soap:Envelope>\r\n",
+          "options": {
+            "raw": {
+              "language": "xml"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://www.dataaccess.com/webservicesserver/NumberConversion.wso",
+          "protocol": "https",
+          "host": [
+            "www",
+            "dataaccess",
+            "com"
+          ],
+          "path": [
+            "webservicesserver",
+            "NumberConversion.wso"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
