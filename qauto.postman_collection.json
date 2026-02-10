@@ -1,0 +1,1627 @@
+{
+  "info": {
+    "_postman_id": "85fef5ac-bdd1-4dee-8a15-af152c4ddfd0",
+    "name": "HW",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "49088919",
+    "_collection_link": "https://go.postman.co/collection/49088919-85fef5ac-bdd1-4dee-8a15-af152c4ddfd0?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "negative",
+      "item": [
+        {
+          "name": "Signup validation (loop)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const rawCases = pm.collectionVariables.get(\"signupCases\");\r",
+                  "if (!rawCases) throw new Error(\"signupCases is empty\");\r",
+                  "\r",
+                  "const cases = JSON.parse(rawCases);\r",
+                  "const idx = Number(pm.collectionVariables.get(\"signupCaseIndex\") || 0);\r",
+                  "const c = cases[idx];\r",
+                  "\r",
+                  "pm.collectionVariables.set(\"currentSignupTitle\", c.title || (\"case #\" + idx));\r",
+                  "pm.collectionVariables.set(\"currentSignupExpected\", String(c.expectStatus || 400));\r",
+                  "\r",
+                  "const uniq = Date.now();\r",
+                  "\r",
+                  "// базовый валидный payload (под твой позитивный запрос)\r",
+                  "let payload = {\r",
+                  "  name: \"Kateee\",\r",
+                  "  lastName: \"Moanna\",\r",
+                  "  email: `test${uniq}@test.com`,\r",
+                  "  password: \"Lpk567890\",\r",
+                  "  repeatPassword: \"Lpk567890\"\r",
+                  "};\r",
+                  "\r",
+                  "if (c.mode === \"emptyBody\") payload = {};\r",
+                  "if (c.mode === \"deleteField\") delete payload[c.field];\r",
+                  "if (c.mode === \"patch\") payload[c.field] = c.value;\r",
+                  "if (c.mode === \"passwordMismatch\") payload.repeatPassword = \"Different567890\";\r",
+                  "\r",
+                  "pm.variables.set(\"requestPayload\", JSON.stringify(payload));\r",
+                  "\r",
+                  "console.log(\"Prepared CASE:\", pm.collectionVariables.get(\"currentSignupTitle\"));\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const title = pm.collectionVariables.get(\"currentSignupTitle\");\r",
+                  "\r",
+                  "console.log(\"CASE:\", title);\r",
+                  "console.log(\"STATUS:\", pm.response.code);\r",
+                  "try { console.log(\"RESP:\", pm.response.json()); } catch (e) {}\r",
+                  "\r",
+                  "pm.test(`[Signup] ${title} -> validation error`, () => {\r",
+                  "  pm.expect([400, 422]).to.include(pm.response.code);\r",
+                  "});\r",
+                  "\r",
+                  "const cases = JSON.parse(pm.collectionVariables.get(\"signupCases\"));\r",
+                  "let idx = Number(pm.collectionVariables.get(\"signupCaseIndex\") || 0);\r",
+                  "idx++;\r",
+                  "\r",
+                  "if (idx < cases.length) {\r",
+                  "  pm.collectionVariables.set(\"signupCaseIndex\", String(idx));\r",
+                  "  pm.execution.setNextRequest(pm.info.requestName);\r",
+                  "} else {\r",
+                  "  pm.collectionVariables.set(\"signupCaseIndex\", \"0\");\r",
+                  "  pm.execution.setNextRequest(\"PUT Profile validation (loop + switch env / finish)\");\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{{requestPayload}}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Password too short",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let res = {};\r",
+                  "try { res = pm.response.json(); } catch (e) {}\r",
+                  "\r",
+                  "pm.test(\"Signup failed\", () => {\r",
+                  "  pm.expect(pm.response.code).to.not.equal(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Status is error\", () => {\r",
+                  "  pm.expect(res.status).to.eql(\"error\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Message exists\", () => {\r",
+                  "  pm.expect(res.message).to.be.a(\"string\");\r",
+                  "  pm.expect(res.message.length).to.be.above(0);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.unset(\"expectedMessage\");\r",
+                  "pm.environment.unset(\"expectedMessage\");\r",
+                  "pm.collectionVariables.unset(\"expectedMessage\");\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Test\",\r\n  \"lastName\": \"User\",\r\n  \"email\": \"shortpass@test.com\",\r\n  \"password\": \"123\",\r\n  \"repeatPassword\": \"123\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Passwords do not match",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Status is error\", () => {\r",
+                  "  pm.expect(res.status).to.eql(\"error\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Message is correct\", () => {\r",
+                  "  pm.expect(res.message).to.eql(pm.variables.get(\"expectedMessage\"));\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set(\"expectedMessage\", \"Passwords do not match\");\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Test\",\r\n  \"lastName\": \"User\",\r\n  \"email\": \"nomatch@test.com\",\r\n  \"password\": \"Qwerty123\",\r\n  \"repeatPassword\": \"Qwerty321\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid email format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Status is error\", () => {\r",
+                  "  pm.expect(res.status).to.eql(\"error\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Message is correct\", () => {\r",
+                  "  pm.expect(res.message).to.eql(pm.environment.get(\"expectedMessage\"));\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set(\"expectedMessage\", \"Email is incorrect\");\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Test\",\r\n  \"lastName\": \"User\",\r\n  \"email\": \"invalid-email\",\r\n  \"password\": \"Qwerty123\",\r\n  \"repeatPassword\": \"Qwerty123\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Empty email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"DEBUG: show status\", () => {\r",
+                  "  console.log(\"STATUS:\", pm.response.code);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"DEBUG: show body\", () => {\r",
+                  "  console.log(\"BODY:\", pm.response.text());\r",
+                  "});\r",
+                  "\r",
+                  "// Минимальная проверка: запрос должен быть неуспешным\r",
+                  "pm.test(\"Signup should fail\", () => {\r",
+                  "  pm.expect(pm.response.code).to.not.equal(201);\r",
+                  "});\r",
+                  "\r",
+                  "// Пытаемся распарсить JSON безопасно\r",
+                  "let res;\r",
+                  "try {\r",
+                  "  res = pm.response.json();\r",
+                  "} catch (e) {\r",
+                  "  // Если ответ не JSON — это тоже ок для негативного кейса,\r",
+                  "  // просто покажем это как отдельный факт\r",
+                  "  pm.test(\"Response is JSON\", () => {\r",
+                  "    throw new Error(\"Not JSON: \" + pm.response.text());\r",
+                  "  });\r",
+                  "  return;\r",
+                  "}\r",
+                  "\r",
+                  "// Проверяем только общие вещи, без exact message\r",
+                  "pm.test(\"status is error\", () => {\r",
+                  "  pm.expect(res.status).to.eql(\"error\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"message exists\", () => {\r",
+                  "  pm.expect(res.message).to.be.a(\"string\");\r",
+                  "  pm.expect(res.message.length).to.be.above(0);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Убираем expectedMessage откуда бы он ни наследовался\r",
+                  "pm.environment.unset(\"expectedMessage\");\r",
+                  "pm.collectionVariables.unset(\"expectedMessage\");\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Test\",\r\n  \"lastName\": \"User\",\r\n  \"email\": \"\",\r\n  \"password\": \"Qwerty123\",\r\n  \"repeatPassword\": \"Qwerty123\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Empty body",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let res = {};\r",
+                  "try { res = pm.response.json(); } catch (e) {}\r",
+                  "\r",
+                  "pm.test(\"Signup failed\", () => {\r",
+                  "  pm.expect(pm.response.code).to.not.equal(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Status is error\", () => {\r",
+                  "  pm.expect(res.status).to.eql(\"error\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Message exists\", () => {\r",
+                  "  pm.expect(res.message).to.be.a(\"string\");\r",
+                  "  pm.expect(res.message.length).to.be.above(0);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.unset(\"expectedMessage\");\r",
+                  "pm.environment.unset(\"expectedMessage\");\r",
+                  "pm.collectionVariables.unset(\"expectedMessage\");\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}\r\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "important field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();\r",
+                  "\r",
+                  "/* статус-код — ошибка */\r",
+                  "pm.test(\"Request failed\", () => {\r",
+                  "  pm.expect(pm.response.code).to.not.be.oneOf([200, 201]);\r",
+                  "});\r",
+                  "\r",
+                  "/* статус error (если есть) */\r",
+                  "pm.test(\"Status is error (if present)\", () => {\r",
+                  "  if (res.status !== undefined) {\r",
+                  "    pm.expect(res.status).to.eql(\"error\");\r",
+                  "  }\r",
+                  "});\r",
+                  "\r",
+                  "/* сообщение об ошибке существует (любая локализация) */\r",
+                  "pm.test(\"Error message exists\", () => {\r",
+                  "  pm.expect(res).to.have.property(\"message\");\r",
+                  "  pm.expect(res.message).to.be.a(\"string\").and.not.empty;\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Kate\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "не string (object)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let res = {};\r",
+                  "try {\r",
+                  "  res = pm.response.json();\r",
+                  "} catch (e) {}\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Request is failed (not 200/201)\", () => {\r",
+                  "  pm.expect(pm.response.code).to.not.be.oneOf([200, 201]);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Status code is one of 400/422/500\", () => {\r",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400, 422, 500]);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Error message exists (any language)\", () => {\r",
+                  "  pm.expect(res).to.have.property(\"message\");\r",
+                  "  pm.expect(res.message).to.be.a(\"string\").and.not.empty;\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Status is error (if present)\", () => {\r",
+                  "  if (res.status !== undefined) {\r",
+                  "    pm.expect(res.status).to.eql(\"error\");\r",
+                  "  }\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": [\"Kate\"],\r\n  \"lastName\": \"Test\",\r\n  \"country\": { \"value\": \"Ukraine\" },\r\n  \"dateBirth\": \"2006-01-01T00:00:00.000Z\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "dateBirth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let res = {};\r",
+                  "try {\r",
+                  "  res = pm.response.json();\r",
+                  "} catch (e) {}\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Request is failed (not 200/201)\", () => {\r",
+                  "  pm.expect(pm.response.code).to.not.be.oneOf([200, 201]);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Status code is one of 400/422/500\", () => {\r",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400, 422, 500]);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Error message exists (any language)\", () => {\r",
+                  "  pm.expect(res).to.have.property(\"message\");\r",
+                  "  pm.expect(res.message).to.be.a(\"string\").and.not.empty;\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Status is error (if present)\", () => {\r",
+                  "  if (res.status !== undefined) {\r",
+                  "    pm.expect(res.status).to.eql(\"error\");\r",
+                  "  }\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"dateBirth\": \"not-a-date\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Signup validation (loop)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "New Request",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Signup ok\", () => {\r",
+              "  pm.expect(res.status).to.eql(\"ok\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"userId exists\", () => {\r",
+              "  pm.expect(res.data.userId).to.be.a(\"number\");\r",
+              "});\r",
+              "\r",
+              "pm.environment.set(\"userId\", res.data.userId);\r",
+              "\r",
+              "const req = JSON.parse(pm.request.body.raw);\r",
+              "pm.environment.set(\"email\", req.email);\r",
+              "pm.environment.set(\"password\", req.password);\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Kateee\",\r\n  \"lastName\": \"Moanna\",\r\n  \"email\": \"test35798123@test.com\",\r\n  \"password\": \"Lpk567890\",\r\n  \"repeatPassword\": \"Lpk567890\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signup",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "signup"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update profile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();\r",
+              "const req = JSON.parse(pm.request.body.raw);\r",
+              "\r",
+              "pm.test(\"Status ok\", () => {\r",
+              "  pm.expect(res.status).to.eql(\"ok\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response matches sent fields\", () => {\r",
+              "  Object.keys(req).forEach((k) => {\r",
+              "    pm.expect(res.data).to.have.property(k);\r",
+              "    pm.expect(res.data[k]).to.eql(req[k]);\r",
+              "  });\r",
+              "  pm.execution.setNextRequest(\"POST Signup validation (loop)\");\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"KateeeTwo\",\r\n  \"lastName\": \"MoannaTwo\",\r\n  \"dateBirth\": \"2006-01-01T00:00:00.000Z\",\r\n  \"country\": \"Ukraine\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/users/profile",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Photo",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "photo",
+              "type": "file",
+              "uuid": "bde5d8eb-b4cc-45af-b316-e9ff55fb2517",
+              "src": "postman-cloud:///1f0f303b-5a22-4800-8e7d-7c119c0d009c"
+            },
+            {
+              "key": "name",
+              "value": "Kateee2",
+              "type": "text",
+              "uuid": "2d19b1ea-bbe2-450d-93c7-cbe40342589c"
+            },
+            {
+              "key": "lastName",
+              "value": "Moanna2",
+              "type": "text",
+              "uuid": "bf27a9ce-1b21-4018-a1f8-23c3713c0667"
+            },
+            {
+              "key": "distanceUnits",
+              "value": "mi",
+              "type": "text",
+              "uuid": "698938c0-246f-48d7-aa1a-b013acc67729"
+            },
+            {
+              "key": "currency",
+              "value": "eur",
+              "type": "text",
+              "uuid": "8cc15416-4ad5-4b40-8e97-b63802f390fd"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/users/profile",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Profile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"photo\": \"default-user.png\",\r\n  \"name\": \"Kateee2\",\r\n  \"lastName\": \"Moanna2\",\r\n  \"dateBirth\": \"2000-01-01T00:00:00.000Z\",\r\n  \"country\": \"Ukraine\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/users/profile",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update settings",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"distanceUnits\": \"ml\",\r\n  \"currency\": \"eur\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/users/settings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "settings"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Change password",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Password changed\", () => {\r",
+              "  pm.expect(res.status).to.eql(\"ok\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"userId same as signup\", () => {\r",
+              "  pm.expect(res.data.userId).to.eql(+pm.environment.get(\"userId\"));\r",
+              "});\r",
+              "\r",
+              "const req = JSON.parse(pm.request.body.raw);\r",
+              "pm.environment.set(\"password\", req.password);\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"oldPassword\": \"{{password}}\",\r\n  \"password\": \"NewPass12345!\",\r\n  \"repeatPassword\": \"NewPass12345!\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/users/password",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "password"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "LOGOUT",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Logout: status 200\", () => pm.response.code === 200);\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json, text/plain, */*"
+          },
+          {
+            "key": "Accept-Language",
+            "value": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic Z3Vlc3Q6d2VsY29tZTJxYXV0bw=="
+          },
+          {
+            "key": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "key": "Referer",
+            "value": "https://qauto.forstudy.space/panel/garage"
+          },
+          {
+            "key": "Sec-Fetch-Dest",
+            "value": "empty"
+          },
+          {
+            "key": "Sec-Fetch-Mode",
+            "value": "cors"
+          },
+          {
+            "key": "Sec-Fetch-Site",
+            "value": "same-origin"
+          },
+          {
+            "key": "User-Agent",
+            "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+          },
+          {
+            "key": "sec-ch-ua",
+            "value": "\"Google Chrome\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\""
+          },
+          {
+            "key": "sec-ch-ua-mobile",
+            "value": "?0"
+          },
+          {
+            "key": "sec-ch-ua-platform",
+            "value": "\"Windows\""
+          },
+          {
+            "key": "Cookie",
+            "value": "sid=s%3A19VP3SJqtvSVtaNXfrIPwmbKd9loynbw.CVnDF%2Fwy5KqWNe%2BwOS4OBDUVspGlcSz2wyV%2FX6HXwW4"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/logout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "logout"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "sign in",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const req = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};\r",
+              "const res = pm.response.json();\r",
+              "\r",
+              "pm.environment.set(\"userId\", res?.data?.userId);\r",
+              "pm.environment.set(\"email\", req.email);\r",
+              "pm.environment.set(\"password\", req.password);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Kateee\",\r\n  \"lastName\": \"Moanna\",\r\n  \"email\": \"test35790@test.com\",\r\n  \"password\": \"Lpk567890\",\r\n  \"repeatPassword\": \"Lpk567890\"\r\n}\r\n\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signup",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "signup"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Log in",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Login status ok\", () => {\r",
+              "  pm.expect(res.status).to.eql(\"ok\");\r",
+              "});\r",
+              "\r",
+              "const token =\r",
+              "  res?.data?.token ||\r",
+              "  res?.data?.accessToken ||\r",
+              "  res?.data?.token?.accessToken ||\r",
+              "  res?.data?.jwt;\r",
+              "\r",
+              "pm.test(\"Token exists\", () => {\r",
+              "  pm.expect(token, \"Token not found in response\").to.be.a(\"string\").and.not.empty;\r",
+              "});\r",
+              "\r",
+              "pm.environment.set(\"token\", token);\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"{{email}}\",\r\n  \"password\": \"{{password}}\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signin",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "signin"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New car",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code 200/201\", () => {\r",
+              "  pm.expect([200,201]).to.include(pm.response.code);\r",
+              "});\r",
+              "\r",
+              "const res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Status ok\", () => {\r",
+              "  pm.expect(res.status).to.eql(\"ok\");\r",
+              "});\r",
+              "\r",
+              "pm.environment.set(\"carId\", res.data.id);\r",
+              "pm.environment.set(\"lastMileage\", res.data.mileage); // если есть mileage в ответе\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"carBrandId\": 1,\r\n  \"carModelId\": 1,\r\n  \"mileage\": 122\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/cars",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cars"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Add expense",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Expense added\", () => {\r",
+              "  pm.expect(res.status).to.eql(\"ok\");\r",
+              "});\r",
+              "\r",
+              "if (res.status === \"ok\") {\r",
+              "  pm.environment.set(\"lastMileage\", res.data.mileage);\r",
+              "}\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const last = Number(pm.environment.get(\"lastMileage\") || 0);\r",
+              "pm.environment.set(\"nextMileage\", last + 10);\r",
+              "\r",
+              "// сегодняшняя дата YYYY-MM-DD\r",
+              "const d = new Date();\r",
+              "const yyyy = d.getFullYear();\r",
+              "const mm = String(d.getMonth() + 1).padStart(2, \"0\");\r",
+              "const dd = String(d.getDate()).padStart(2, \"0\");\r",
+              "pm.environment.set(\"today\", `${yyyy}-${mm}-${dd}`);\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"carId\": {{carId}},\r\n  \"reportedAt\": \"2026-01-24\",\r\n  \"mileage\": 123,\r\n  \"liters\": 10,\r\n  \"totalCost\": 10,\r\n  \"forceMileage\": false\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/expenses",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "expenses"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code 200\", () => {\r",
+              "  pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "\r",
+              "const res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Status ok\", () => {\r",
+              "  pm.expect(res.status).to.eql(\"ok\");\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "(Init) Switch env qauto/qauto2",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const envIndex = Number(pm.collectionVariables.get(\"envIndex\") || 0);\r",
+              "\r",
+              "const baseUrl = envIndex === 0\r",
+              "  ? pm.collectionVariables.get(\"baseUrl_qauto\")\r",
+              "  : pm.collectionVariables.get(\"baseUrl_qauto2\");\r",
+              "\r",
+              "pm.collectionVariables.set(\"baseUrl\", baseUrl);\r",
+              "\r",
+              "// сброс индексов на каждое окружение\r",
+              "pm.collectionVariables.set(\"signupCaseIndex\", \"0\");\r",
+              "pm.collectionVariables.set(\"profileCaseIndex\", \"0\");\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.execution.setNextRequest(\"POST Signup validation (loop)\");\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "\r",
+              "// пробуем достать токен из JSON\r",
+              "let token = null;\r",
+              "\r",
+              "try {\r",
+              "  const json = pm.response.json();\r",
+              "\r",
+              "  // самые частые варианты:\r",
+              "  token =\r",
+              "    json.token ||\r",
+              "    json.accessToken ||\r",
+              "    (json.data && json.data.token) ||\r",
+              "    (json.data && json.data.accessToken) ||\r",
+              "    (json.data && json.data.access_token) ||\r",
+              "    json.access_token;\r",
+              "\r",
+              "} catch (e) {}\r",
+              "\r",
+              "// если токен нашли — сохраняем\r",
+              "if (token) {\r",
+              "  pm.collectionVariables.set(\"token\", token);\r",
+              "}\r",
+              "\r",
+              "// идем дальше\r",
+              "pm.execution.setNextRequest(\"POST Signup validation (loop)\");\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"{{email}}\",\r\n  \"password\": \"{{password}}\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/signin",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "signin"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Profile validation (loop + switch env / finish)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const title = pm.collectionVariables.get(\"currentProfileTitle\");\r",
+              "const expected = Number(pm.collectionVariables.get(\"currentProfileExpected\"));\r",
+              "\r",
+              "pm.test(`[Profile] ${title} -> ${expected}`, () => {\r",
+              "  pm.response.to.have.status(expected);\r",
+              "});\r",
+              "\r",
+              "const cases = JSON.parse(pm.collectionVariables.get(\"profileCases\"));\r",
+              "let idx = Number(pm.collectionVariables.get(\"profileCaseIndex\") || 0);\r",
+              "idx++;\r",
+              "\r",
+              "if (idx < cases.length) {\r",
+              "  pm.collectionVariables.set(\"profileCaseIndex\", String(idx));\r",
+              "  pm.execution.setNextRequest(pm.info.requestName);\r",
+              "} else {\r",
+              "  pm.collectionVariables.set(\"profileCaseIndex\", \"0\");\r",
+              "\r",
+              "  const envIndex = Number(pm.collectionVariables.get(\"envIndex\") || 0);\r",
+              "  if (envIndex === 0) {\r",
+              "    pm.collectionVariables.set(\"envIndex\", \"1\");\r",
+              "    pm.execution.setNextRequest(\"(Init) Switch env qauto/qauto2\");\r",
+              "  } else {\r",
+              "    pm.execution.setNextRequest(null);\r",
+              "  }\r",
+              "  pm.execution.setNextRequest(\"Login\");\r",
+              "}\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const cases = JSON.parse(pm.collectionVariables.get(\"profileCases\"));\r",
+              "const idx = Number(pm.collectionVariables.get(\"profileCaseIndex\") || 0);\r",
+              "const c = cases[idx];\r",
+              "\r",
+              "pm.collectionVariables.set(\"currentProfileTitle\", c.title);\r",
+              "pm.collectionVariables.set(\"currentProfileExpected\", String(c.expectStatus));\r",
+              "\r",
+              "\r",
+              "let payload = {\r",
+              "  name: \"KateeeTwo\",\r",
+              "  lastName: \"MoannaTwo\",\r",
+              "  dateBirth: \"2006-01-01T00:00:00.000Z\",\r",
+              "  country: \"Ukraine\"\r",
+              "};\r",
+              "\r",
+              "if (c.mode === \"deleteField\") delete payload[c.field];\r",
+              "if (c.mode === \"patch\") payload[c.field] = c.value;\r",
+              "\r",
+              "pm.variables.set(\"requestPayload\", JSON.stringify(payload));\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{{requestPayload}}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/users/profile",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl_qauto",
+      "value": ""
+    },
+    {
+      "key": "baseUrl_qauto2",
+      "value": ""
+    },
+    {
+      "key": "baseUrl",
+      "value": ""
+    },
+    {
+      "key": "envIndex",
+      "value": ""
+    },
+    {
+      "key": "profileCases",
+      "value": ""
+    },
+    {
+      "key": "signupCases",
+      "value": ""
+    },
+    {
+      "key": "profileCaseIndex",
+      "value": ""
+    },
+    {
+      "key": "signupCaseIndex",
+      "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "currentProfileTitle",
+      "value": ""
+    },
+    {
+      "key": "currentProfileExpected",
+      "value": ""
+    },
+    {
+      "key": "currentSignupTitle",
+      "value": ""
+    },
+    {
+      "key": "currentSignupExpected",
+      "value": ""
+    }
+  ]
+}
