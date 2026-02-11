@@ -659,23 +659,125 @@
         },
         {
           "name": "Signup validation (loop)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "\r",
+                  "const signupCases = [\r",
+                  "  {\r",
+                  "    name: \"Empty email\",\r",
+                  "    body: { name: \"Alyona\", lastName: \"Shyrkova\", email: \"\", password: \"Qwerty12345\", repeatPassword: \"Qwerty12345\" },\r",
+                  "    expected: { status: 400 }\r",
+                  "  },\r",
+                  "  {\r",
+                  "    name: \"Invalid email\",\r",
+                  "    body: { name: \"Alyona\", lastName: \"Shyrkova\", email: \"test.com\", password: \"Qwerty12345\", repeatPassword: \"Qwerty12345\" },\r",
+                  "    expected: { status: 400 }\r",
+                  "  },\r",
+                  "  {\r",
+                  "    name: \"Password too short\",\r",
+                  "    body: { name: \"Alyona\", lastName: \"Shyrkova\", email: \"test35798123@test.com\", password: \"Qwe1\", repeatPassword: \"Qwe1\" },\r",
+                  "    expected: { status: 400 }\r",
+                  "  },\r",
+                  "  {\r",
+                  "    name: \"Passwords do not match\",\r",
+                  "    body: { name: \"Alyona\", lastName: \"Shyrkova\", email: \"test35798124@test.com\", password: \"Qwerty12345\", repeatPassword: \"Qwerty123456\" },\r",
+                  "    expected: { status: 400 }\r",
+                  "  }\r",
+                  "];\r",
+                  "\r",
+                  "// ====== LOOP INDEX ======\r",
+                  "let idx = Number(pm.collectionVariables.get(\"signupCaseIndex\") || 0);\r",
+                  "\r",
+                  "\r",
+                  "if (idx >= signupCases.length) {\r",
+                  "  pm.collectionVariables.unset(\"signupCaseIndex\");\r",
+                  "  postman.setNextRequest(null);\r",
+                  "  return;\r",
+                  "}\r",
+                  "\r",
+                  "\r",
+                  "const c = signupCases[idx];\r",
+                  "\r",
+                  "\r",
+                  "pm.collectionVariables.set(\"signupCaseIndex\", idx + 1);\r",
+                  "pm.collectionVariables.set(\"caseName\", c.name);\r",
+                  "pm.collectionVariables.set(\"expectedStatus\", c.expected.status);\r",
+                  "\r",
+                  "\r",
+                  "pm.request.headers.upsert({ key: \"Content-Type\", value: \"application/json\" });\r",
+                  "pm.request.body.update(JSON.stringify(c.body));\r",
+                  "\r",
+                  "postman.setNextRequest(pm.info.requestName);\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const ct = (pm.response.headers.get(\"Content-Type\") || \"\").toLowerCase();\r",
+                  "const code = pm.response.code;\r",
+                  "\r",
+                  "pm.test(\"DEBUG: show status\", () => {\r",
+                  "  console.log(\"STATUS:\", code);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"DEBUG: show content-type\", () => {\r",
+                  "  console.log(\"CONTENT-TYPE:\", ct);\r",
+                  "});\r",
+                  "\r",
+                  "if (ct.includes(\"application/json\")) {\r",
+                  "  const j = pm.response.json();\r",
+                  "\r",
+                  "  pm.test(\"status field exists\", () => {\r",
+                  "    pm.expect(j).to.have.property(\"status\");\r",
+                  "  });\r",
+                  "\r",
+                  "} else {\r",
+                  "  pm.test(\"Response is not JSON (show first 200 chars)\", () => {\r",
+                  "    const t = pm.response.text();\r",
+                  "    console.log(\"BODY(200):\", t.slice(0, 200));\r",
+                  "    pm.expect.fail(\"Not JSON response, check URL/auth/headers\");\r",
+                  "  });\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
-              "raw": "{{baseUrl}}",
+              "raw": "{{baseUrl}}/api/auth/signup\n",
               "host": [
                 "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup\n"
               ]
             }
-          },
-          "response": []
-        },
-        {
-          "name": "New Request",
-          "request": {
-            "method": "GET",
-            "header": []
           },
           "response": []
         }
@@ -777,60 +879,6 @@
               "language": "json"
             }
           }
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/users/profile",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "users",
-            "profile"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Photo",
-      "request": {
-        "method": "PUT",
-        "header": [],
-        "body": {
-          "mode": "formdata",
-          "formdata": [
-            {
-              "key": "photo",
-              "type": "file",
-              "uuid": "bde5d8eb-b4cc-45af-b316-e9ff55fb2517",
-              "src": "postman-cloud:///1f0f303b-5a22-4800-8e7d-7c119c0d009c"
-            },
-            {
-              "key": "name",
-              "value": "Kateee2",
-              "type": "text",
-              "uuid": "2d19b1ea-bbe2-450d-93c7-cbe40342589c"
-            },
-            {
-              "key": "lastName",
-              "value": "Moanna2",
-              "type": "text",
-              "uuid": "bf27a9ce-1b21-4018-a1f8-23c3713c0667"
-            },
-            {
-              "key": "distanceUnits",
-              "value": "mi",
-              "type": "text",
-              "uuid": "698938c0-246f-48d7-aa1a-b013acc67729"
-            },
-            {
-              "key": "currency",
-              "value": "eur",
-              "type": "text",
-              "uuid": "8cc15416-4ad5-4b40-8e97-b63802f390fd"
-            }
-          ]
         },
         "url": {
           "raw": "{{baseUrl}}/api/users/profile",
@@ -1600,10 +1648,6 @@
       "value": ""
     },
     {
-      "key": "signupCaseIndex",
-      "value": ""
-    },
-    {
       "key": "token",
       "value": ""
     },
@@ -1621,6 +1665,18 @@
     },
     {
       "key": "currentSignupExpected",
+      "value": ""
+    },
+    {
+      "key": "caseName",
+      "value": ""
+    },
+    {
+      "key": "expectedStatus",
+      "value": ""
+    },
+    {
+      "key": "signupCaseIndex",
       "value": ""
     }
   ]
